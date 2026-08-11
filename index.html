@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Simple Blog App - SaiKet Systems</title>
+<style>
+  * { box-sizing: border-box; }
+  body {
+    font-family: 'Segoe UI', Arial, sans-serif;
+    background: #f4f6f8;
+    margin: 0;
+    padding: 30px;
+    color: #222;
+  }
+  .container {
+    max-width: 700px;
+    margin: 0 auto;
+  }
+  h1 {
+    text-align: center;
+    color: #1f2a44;
+  }
+  .form-box {
+    background: #fff;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    margin-bottom: 25px;
+  }
+  input, textarea {
+    width: 100%;
+    padding: 10px;
+    margin-top: 8px;
+    margin-bottom: 14px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    font-size: 15px;
+  }
+  textarea { resize: vertical; min-height: 90px; }
+  button {
+    background: #c0392b;
+    color: #fff;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 15px;
+  }
+  button:hover { background: #a93226; }
+  .post {
+    background: #fff;
+    padding: 16px 18px;
+    border-radius: 8px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.06);
+    margin-bottom: 14px;
+    position: relative;
+  }
+  .post h3 { margin: 0 0 8px 0; color: #1f2a44; }
+  .post p { margin: 0; line-height: 1.5; }
+  .post .date { font-size: 12px; color: #888; margin-top: 8px; }
+  .delete-btn {
+    position: absolute;
+    top: 14px;
+    right: 14px;
+    background: #eee;
+    color: #c0392b;
+    border: 1px solid #c0392b;
+    padding: 4px 10px;
+    font-size: 13px;
+    border-radius: 5px;
+  }
+  .delete-btn:hover { background: #c0392b; color: #fff; }
+  .empty { text-align: center; color: #999; padding: 20px; }
+</style>
+</head>
+<body>
+
+<div class="container">
+  <h1>My Simple Blog</h1>
+
+  <div class="form-box">
+    <input type="text" id="postTitle" placeholder="Post title">
+    <textarea id="postContent" placeholder="Write something..."></textarea>
+    <button onclick="addPost()">Publish Post</button>
+  </div>
+
+  <div id="postList"></div>
+</div>
+
+<script>
+  const STORAGE_KEY = "simpleBlogPosts";
+
+  function getPosts() {
+    const data = localStorage.getItem(STORAGE_KEY);
+    return data ? JSON.parse(data) : [];
+  }
+
+  function savePosts(posts) {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(posts));
+  }
+
+  function addPost() {
+    const title = document.getElementById("postTitle").value.trim();
+    const content = document.getElementById("postContent").value.trim();
+
+    if (!title || !content) {
+      alert("Please fill in both title and content.");
+      return;
+    }
+
+    const posts = getPosts();
+    posts.unshift({
+      id: Date.now(),
+      title,
+      content,
+      date: new Date().toLocaleString()
+    });
+
+    savePosts(posts);
+    document.getElementById("postTitle").value = "";
+    document.getElementById("postContent").value = "";
+    renderPosts();
+  }
+
+  function deletePost(id) {
+    let posts = getPosts();
+    posts = posts.filter(p => p.id !== id);
+    savePosts(posts);
+    renderPosts();
+  }
+
+  function renderPosts() {
+    const posts = getPosts();
+    const container = document.getElementById("postList");
+
+    if (posts.length === 0) {
+      container.innerHTML = '<div class="empty">No posts yet. Write your first one above!</div>';
+      return;
+    }
+
+    container.innerHTML = posts.map(post => `
+      <div class="post">
+        <button class="delete-btn" onclick="deletePost(${post.id})">Delete</button>
+        <h3>${escapeHtml(post.title)}</h3>
+        <p>${escapeHtml(post.content)}</p>
+        <div class="date">${post.date}</div>
+      </div>
+    `).join("");
+  }
+
+  function escapeHtml(str) {
+    const div = document.createElement("div");
+    div.textContent = str;
+    return div.innerHTML;
+  }
+
+  renderPosts();
+</script>
+
+</body>
+</html>
